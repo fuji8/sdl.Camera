@@ -1,23 +1,37 @@
 package jp.ac.titech.itpro.sdl.camera;
 
 import android.annotation.SuppressLint;
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
+import android.media.Image;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
 
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
     private final static int REQ_PHOTO = 1234;
+    private static final String TAG = "Error";
     private Bitmap photoImage = null;
+
+    String currentPhotoPath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,18 +40,20 @@ public class MainActivity extends AppCompatActivity {
 
         Button photoButton = findViewById(R.id.photo_button);
         photoButton.setOnClickListener(v -> {
-            Intent intent = new Intent();
             // TODO: You should setup appropriate parameters for the intent
 
-            PackageManager manager = getPackageManager();
-            @SuppressLint("QueryPermissionsNeeded")
-            List<ResolveInfo> activities = manager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
-            if (!activities.isEmpty()) {
-                startActivityForResult(intent, REQ_PHOTO);
-            } else {
-                Toast.makeText(MainActivity.this, R.string.toast_no_activities, Toast.LENGTH_LONG).show();
-            }
+            dispatchTakePictureIntent();
+
         });
+    }
+
+    private void dispatchTakePictureIntent() {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        try {
+            startActivityForResult(takePictureIntent, REQ_PHOTO);
+        } catch (ActivityNotFoundException e) {
+            // display error state to the user
+        }
     }
 
     private void showPhoto() {
@@ -49,12 +65,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onActivityResult(int reqCode, int resCode, Intent data) {
-        super.onActivityResult(reqCode, resCode, data);
-        if (reqCode == REQ_PHOTO) {
-            if (resCode == RESULT_OK) {
-                // TODO: You should implement the code that retrieve a bitmap image
-            }
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQ_PHOTO && resultCode == RESULT_OK) {
+            Bundle extras = data.getExtras();
+            photoImage = (Bitmap) extras.get("data");
+            ImageView imageView = findViewById(R.id.photo_view);
+            imageView.setImageBitmap(photoImage);
         }
     }
 
