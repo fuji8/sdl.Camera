@@ -70,8 +70,6 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == REQ_PHOTO && resultCode == RESULT_OK) {
             Bundle extras = data.getExtras();
             photoImage = (Bitmap) extras.get("data");
-            ImageView imageView = findViewById(R.id.photo_view);
-            imageView.setImageBitmap(photoImage);
         }
     }
 
